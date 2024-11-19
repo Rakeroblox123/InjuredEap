@@ -1,0 +1,416 @@
+game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(Vector3.new(-5,-5,15))
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local Workspace = game:GetService("Workspace")
+
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+local function createDomain()
+    local domain = Instance.new("Part")
+    domain.Name = "BlackCircleDomain"
+    domain.Shape = Enum.PartType.Ball
+    domain.Size = Vector3.new(1, 1, 1)
+    domain.Position = Character:FindFirstChild("HumanoidRootPart").Position
+    domain.Anchored = true
+    domain.CanCollide = false
+    domain.Transparency = 0.4
+    domain.Color = Color3.fromRGB(0, 0, 0)
+    domain.Parent = Workspace
+
+    local tweenInfo = TweenInfo.new(4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local tweenGoal = { Size = Vector3.new(100, 100, 100) }
+    local tween = TweenService:Create(domain, tweenInfo, tweenGoal)
+    tween:Play()
+
+    tween.Completed:Connect(function()
+        domain:Destroy()
+    end)
+end
+
+local function activateDomainExpansion()
+    local humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        local originalSpeed = humanoid.WalkSpeed
+        humanoid.WalkSpeed = 0
+
+        task.wait(5)
+
+        createDomain()
+
+        task.wait(1)
+        humanoid.WalkSpeed = originalSpeed
+    end
+end
+
+activateDomainExpansion()
+
+local ModelEffect = game:GetObjects("rbxassetid://14949130713")[1]
+if ModelEffect then
+    for i,v in pairs(ModelEffect.HumanoidRootPart:GetChildren()) do
+        if v.ClassName == "ParticleEmitter" then
+            for i,p in pairs(game.Players.LocalPlayer.Character:GetChildren()) do
+                if p:IsA("Part") then
+                    v:Clone().Parent = p
+                end
+            end
+        end
+    end
+    ModelEffect:Destroy()
+end
+local ModelDeath = game:GetObjects("rbxassetid://12195574482")[1]
+if ModelDeath then
+    for i,a in pairs(ModelDeath.Torso:GetDescendants()) do
+        if a.Name == "Attachment4" or a.Name == "Flare" or a.Name == "Star3" or a.Name == "Bits" then
+            a:Destroy() 
+        end
+    end
+    for i,a in pairs(ModelDeath.Torso:GetChildren()) do
+        if a.ClassName == "Attachment" and a:FindFirstChildWhichIsA("ParticleEmitter") then
+            a:Clone().Parent = game.Players.LocalPlayer.Character.Torso
+        end
+    end
+    ModelDeath:Destroy()
+end
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+
+local function makeCharacterCompletelyBlack()
+    for _, descendant in pairs(character:GetDescendants()) do
+        if descendant:IsA("BasePart") or descendant:IsA("MeshPart") then
+            descendant.Color = Color3.new(0, 0, 0)
+            descendant.Material = Enum.Material.SmoothPlastic
+        elseif descendant:IsA("Accessory") then
+            if descendant:FindFirstChild("Handle") then
+                descendant.Handle.Color = Color3.new(0, 0, 0)
+                descendant.Handle.Material = Enum.Material.SmoothPlastic
+
+                for _, child in pairs(descendant.Handle:GetDescendants()) do
+                    if child:IsA("MeshPart") or child:IsA("Part") or child:IsA("UnionOperation") then
+                        child.Color = Color3.new(0, 0, 0)
+                        child.Material = Enum.Material.SmoothPlastic
+                    elseif child:IsA("SpecialMesh") then
+                        child.TextureId = ""
+                    end
+                end
+            end
+        elseif descendant:IsA("Decal") or descendant:IsA("Texture") then
+            descendant:Destroy()
+        elseif descendant:IsA("Clothing") or descendant:IsA("ShirtGraphic") then
+            descendant:Destroy()
+        end
+    end
+
+    local outlineEffect = Instance.new("Highlight")
+    outlineEffect.Parent = character
+    outlineEffect.OutlineColor = Color3.new(1, 0, 0)
+    outlineEffect.FillColor = Color3.new(0, 0, 0)
+    outlineEffect.FillTransparency = 1
+end
+
+makeCharacterCompletelyBlack()
+
+local args = {
+[1] = "rbxassetid://9133844756",
+[2] = game:GetService("Players").LocalPlayer.Character.Torso
+}
+
+game:GetService("ReplicatedStorage"):WaitForChild("PlaySoundRemote"):InvokeServer(unpack(args))
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+
+local function playLoopedAnimation()
+    local humanoid = Character:FindFirstChildOfClass("Humanoid")
+    if humanoid then
+        local animation = Instance.new("Animation")
+        animation.AnimationId = "rbxassetid://17737989045"
+        local animationTrack = humanoid:LoadAnimation(animation)
+        animationTrack.Looped = true
+        animationTrack:Play()
+    else
+        warn("Humanoid not found in the character!")
+    end
+end
+
+playLoopedAnimation()
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 100, 0, 100)
+button.Position = UDim2.new(0.8, -50, 0.5, -50)
+button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Text = "Super Punch"
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 14
+button.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = button
+
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = button.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+local clickedOnce = false
+
+button.MouseButton1Click:Connect(function()
+    if not clickedOnce then
+        clickedOnce = true
+        fireclickdetector(workspace.Lobby.GloveStands.Boxer.ClickDetector)
+    end
+
+   
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    local humanoid = character:FindFirstChild("Humanoid")
+
+    if humanoid then
+        local animation = Instance.new("Animation")
+        animation.AnimationId = "rbxassetid://16102526396"
+        local animationTrack = humanoid:LoadAnimation(animation)
+        animationTrack:Play()
+    end
+
+    local Players = game:GetService("Players")
+    local BoxingEvent = game:GetService("ReplicatedStorage").Events.Boxing
+
+    local function FireForAllPlayers()
+        for _, player in pairs(Players:GetPlayers()) do
+            local args = {
+                [1] = player,
+                [2] = true
+            }
+            BoxingEvent:FireServer(unpack(args))
+        end
+    end
+
+    FireForAllPlayers()
+
+    local slapstickEvent = game:GetService("ReplicatedStorage").slapstick
+    local args = {
+        [1] = "fullcharged"
+    }
+
+    for i = 1, 2 do
+        slapstickEvent:FireServer(unpack(args))
+    end
+end)
+
+for _, guiObject in pairs(game.Players.LocalPlayer.PlayerGui:GetDescendants()) do
+    if guiObject:IsA("TextButton") and guiObject ~= button then
+        guiObject.MouseButton1Click:Connect(function()
+            clickedOnce = false
+        end)
+    end
+end
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 100, 0, 100)
+button.Position = UDim2.new(0.9, -50, 0.5, -50)
+button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Text = "Time ends"
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 14
+button.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = button
+
+local function playAnimation(character, animationId)
+    local humanoid = character:FindFirstChild("Humanoid")
+    if humanoid then
+        local animation = Instance.new("Animation")
+        animation.AnimationId = animationId
+        local animationTrack = humanoid:LoadAnimation(animation)
+        animationTrack.Looped = true
+        animationTrack:Play()
+        task.delay(7, function()
+            animationTrack:Stop()
+        end)
+    end
+end
+
+local function teleportCharacter(character, interval, duration, distance)
+    local humanoidRootPart = character:FindFirstChild("HumanoidRootPart")
+    if humanoidRootPart then
+        local startTime = os.clock()
+        while os.clock() - startTime < duration do
+            local lookVector = humanoidRootPart.CFrame.LookVector
+            humanoidRootPart.CFrame = humanoidRootPart.CFrame + lookVector * distance
+            task.wait(interval)
+        end
+    end
+end
+
+local function fireScythe()
+    for i = 1, 14 do
+        local args = { [1] = "ScytheWeapon" }
+        game:GetService("ReplicatedStorage").Scythe:FireServer(unpack(args))
+        task.wait(0.5)
+    end
+end
+
+local function fireSlapstick()
+    for i = 1, 7 do
+        local args = { [1] = "fullcharged" }
+        game:GetService("ReplicatedStorage").slapstick:FireServer(unpack(args))
+        task.wait(1)
+    end
+end
+
+local function fireBoxing()
+    local Players = game:GetService("Players")
+    local BoxingEvent = game:GetService("ReplicatedStorage").Events.Boxing
+    for _, player in pairs(Players:GetPlayers()) do
+        local args = { [1] = player, [2] = true }
+        BoxingEvent:FireServer(unpack(args))
+    end
+end
+
+button.MouseButton1Click:Connect(function()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait()
+    
+    task.spawn(function()
+        playAnimation(character, "rbxassetid://16144830595")
+    end)
+    
+    task.spawn(function()
+        teleportCharacter(character, 0.8, 7, 10)
+    end)
+    
+    task.spawn(function()
+        fireScythe()
+    end)
+    
+    task.spawn(function()
+        fireSlapstick()
+    end)
+    
+    task.spawn(function()
+        local startTime = os.clock()
+        while os.clock() - startTime < 7 do
+            fireBoxing()
+            task.wait(0.5)
+        end
+    end)
+end)
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+local button = Instance.new("TextButton")
+button.Size = UDim2.new(0, 100, 0, 100)
+button.Position = UDim2.new(0.4, -50, 0.5, -50)
+button.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+button.TextColor3 = Color3.fromRGB(255, 255, 255)
+button.Text = "Quick dash"
+button.Font = Enum.Font.SourceSansBold
+button.TextSize = 14
+button.Parent = screenGui
+
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(1, 0)
+corner.Parent = button
+
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+button.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = button.Position
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+button.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        button.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+local function getNearestPlayer()
+    local localPlayer = game.Players.LocalPlayer
+    local localCharacter = localPlayer.Character
+    if not localCharacter then return nil end
+
+    local nearestPlayer = nil
+    local shortestDistance = math.huge
+
+    for _, player in pairs(game.Players:GetPlayers()) do
+        if player ~= localPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local distance = (localCharacter.HumanoidRootPart.Position - player.Character.HumanoidRootPart.Position).Magnitude
+            if distance < shortestDistance then
+                nearestPlayer = player
+                shortestDistance = distance
+            end
+        end
+    end
+
+    return nearestPlayer
+end
+
+button.MouseButton1Click:Connect(function()
+    local nearestPlayer = getNearestPlayer()
+    if nearestPlayer then
+        local args = {
+            [1] = "Bomb"
+        }
+        game:GetService("ReplicatedStorage").RetroAbility:FireServer(unpack(args))
+    end
+
+    for i = 1, 4 do
+        local args = {
+            [1] = "ScytheWeapon"
+        }
+        game:GetService("ReplicatedStorage").Scythe:FireServer(unpack(args))
+    end
+
+    for i = 1, 2 do
+        local args = {
+            [1] = "fullcharged"
+        }
+        game:GetService("ReplicatedStorage").slapstick:FireServer(unpack(args))
+    end
+end)
